@@ -4,7 +4,7 @@ name: Run Jupyter Notebook
 on:
   workflow_dispatch:
   schedule:
-    - cron: '7 * * * *'  # 매일 오전 9시 실행
+    - cron: '0 7 * * *'  # 매일 오전 9시 실행
 
 jobs:
   execute_notebook:
