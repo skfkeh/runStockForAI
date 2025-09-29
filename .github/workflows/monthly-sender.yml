@@ -1,0 +1,39 @@
+name: Run Colab Notebook Monthly
+
+on:
+  schedule:
+    - cron: "30 22 * * *"  # 매달 1일 00:00 UTC → KST 09:00
+  workflow_dispatch: {}
+
+jobs:
+  run_colab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install papermill gdown pandas openpyxl smtplib
+
+      - name: Download Colab notebook from URL
+        run: |
+          NOTEBOOK_URL="https://colab.research.google.com/drive/1xRykXVb3hQJFO1LpYI7U8FvuDrMV8D8g?hl=ko"
+          NOTEBOOK_ID=$(echo $NOTEBOOK_URL | grep -oP "(?<=/d/)[^/]+" )
+          gdown --id $NOTEBOOK_ID -O notebook.ipynb
+          echo "노트북 다운로드 완료 ✅"
+
+      - name: Run Colab notebook
+        run: |
+          papermill notebook.ipynb /dev/null
+        env:
+          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
