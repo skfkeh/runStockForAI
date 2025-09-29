@@ -1,62 +1,27 @@
-name: Run Colab Notebook Monthly
+name: Run Colab Notebook
 
-# 매월 1일 한국 시간 오전 9시 실행 (UTC 기준 0:00)
 on:
+  workflow_dispatch:   # 수동 실행 가능
   schedule:
-    - cron: "44 22 * * *"
-  workflow_dispatch: {}  # 수동 실행 가능
+    - cron: '0 * * * *'  # 매일 오전 9시 실행
 
 jobs:
   run_colab:
     runs-on: ubuntu-latest
-    steps:
-      # 1. 코드 체크아웃
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      # 2. Python 환경 설치
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      # 3. 필요한 패키지 설치
       - name: Install dependencies
         run: |
-          pip install papermill gdown pandas openpyxl smtplib
+          pip install requests
 
-      # 4. Colab 노트북 다운로드
-      - name: Download Colab notebook
+      - name: Execute Colab Notebook
         run: |
-          NOTEBOOK_URL="https://colab.research.google.com/drive/1xRykXVb3hQJFO1LpYI7U8FvuDrMV8D8g?usp=sharing"
-          NOTEBOOK_ID=$(echo $NOTEBOOK_URL | grep -oP "(?<=/d/)[^/?]+")
-          gdown --id $NOTEBOOK_ID -O notebook.ipynb
-          echo "Colab 노트북 다운로드 완료 ✅"
-
-      # 5. Colab 노트북 실행 + 로그 저장
-      - name: Run Colab notebook with log
-        run: |
-          mkdir -p output
-          # 전체 실행 로그를 output/result.log에 저장
-          papermill notebook.ipynb output/executed.ipynb > output/result.log 2>&1
-          echo "Colab 노트북 실행 완료 ✅"
-        env:
-          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
-          MAIL_PORT: ${{ secrets.MAIL_PORT }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          MAIL_TO: ${{ secrets.MAIL_TO }}
-
-      # 6. 실행 로그 Artifact로 저장
-      - name: Upload log as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: project-log
-          path: output/result.log
-
-      # 7. 실행된 노트북 Artifact로 저장
-      - name: Upload executed notebook
-        uses: actions/upload-artifact@v4
-        with:
-          name: executed-notebook
-          path: output/executed.ipynb
+          python run_colab.py
