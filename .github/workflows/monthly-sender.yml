@@ -3,7 +3,7 @@ name: Run Colab Notebook Monthly
 # 매월 1일 한국 시간 오전 9시 실행 (UTC 기준 0:00)
 on:
   schedule:
-    - cron: "35 22 * * *"
+    - cron: "41 22 * * *"
   workflow_dispatch: {}  # 수동 실행 가능
 
 jobs:
